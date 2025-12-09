@@ -1,6 +1,6 @@
 ---
 site:
-  title: Workshop Template
+  title: Istio Workshop
   url: "https://example.com"
   start_page: modules::index.adoc
 
