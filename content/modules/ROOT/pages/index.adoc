@@ -1,20 +1,40 @@
-= Home
+= Istio Service Mesh Workshop
 
-This workshop is designed to help you [describe the workshop's purpose and goals].
+Welcome to the Istio Service Mesh Workshop. This workshop is designed to help you understand, deploy, and manage Istio service mesh in your Kubernetes environment. Through hands-on exercises and detailed explanations, you will learn how to leverage Istio's powerful features to enhance the security, observability, and reliability of your microservices architecture.
 
 == Prerequisites
 
 This workshop assumes the following:
 
-* [Prerequisite 1]
-* [Prerequisite 2]
+* Basic understanding of Kubernetes concepts (pods, services, deployments)
+* Familiarity with containerization and microservices architecture
+* Access to a Kubernetes cluster
+* Command-line experience with `oc` (OpenShift CLI)
 
-If you are new to [topic], we recommend reviewing the [relevant documentation] before proceeding.
+If you are new to service meshes or Istio, we recommend reviewing the official https://istio.io/latest/docs/[Istio documentation] before proceeding.
 
-== Expectations
+== Workshop Structure
+
+This workshop is divided into four modules:
+
+* *Module 1: Overview* - Introduction to Istio, Envoy, and sidecar architecture. Learn about the benefits of Istio, the strengths of Envoy proxy, and the basics of sidecar architecture. Hands-on exercises cover enabling sidecar injection and configuring mutual TLS (mTLS).
+
+* *Module 2: Traffic Management* - Learn how traffic enters the mesh through Gateways and how VirtualServices route traffic within the mesh. Exercises include creating Gateways, implementing path-based routing, weighted traffic splitting for canary deployments, and combining Gateways with VirtualServices.
+
+* *Module 3: Advanced Traffic Management and Security* - Explore advanced DestinationRule features including load balancing, failover, and circuit breaking. Learn how to implement request authentication with JWT and create authorization policies for fine-grained access control.
+
+* *Module 4: Observability* - Understand how Istio provides metrics, traces, and logs in standard formats. Learn to access Envoy metrics and logs directly from sidecar proxies, and explore observability data using built-in Istio tools without external dependencies.
+
+== Learning Objectives
 
 After completing this workshop, you will be able to:
 
-* [Learning objective 1]
-* [Learning objective 2]
-* [Learning objective 3]
+* Understand the core concepts and benefits of service mesh technology, including Istio and Envoy
+* Enable sidecar injection and configure mutual TLS (mTLS) for secure service-to-service communication
+* Create and configure Gateways to manage external traffic entry points
+* Implement VirtualServices for sophisticated traffic routing, including path-based routing and weighted traffic splitting
+* Configure DestinationRules for load balancing, failover, and circuit breaking
+* Implement request authentication and authorization policies to secure your services
+* Access and analyze metrics and logs directly from Envoy sidecar proxies
+* Use Istio's built-in observability features to monitor and troubleshoot your service mesh
+* Troubleshoot common issues and optimize Istio configurations

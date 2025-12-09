@@ -1,6 +1,6 @@
 ---
 site:
-  title: Istio Workshop
+  title: Istio Service Mesh Workshop
   url: "https://example.com"
   start_page: modules::index.adoc
 
