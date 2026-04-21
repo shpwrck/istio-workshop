@@ -2,6 +2,10 @@
 
 Welcome to the Istio Service Mesh Workshop. This workshop is designed to help you understand, deploy, and manage Istio service mesh in your Kubernetes environment. Through hands-on exercises and detailed explanations, you will learn how to leverage Istio's powerful features to enhance the security, observability, and reliability of your microservices architecture.
 
+ifdef::openshift-102-showroom[]
+include::openshift-102:ROOT:partial$cli-tools-container.adoc[]
+endif::[]
+
 == Prerequisites
 
 This workshop assumes the following:
