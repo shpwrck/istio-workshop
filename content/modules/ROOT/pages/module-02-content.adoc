@@ -149,6 +149,7 @@ spec:
 ----
 
 This example routes:
+
 * Requests to `/api/v1/*` to `api-v1-service`
 * Requests to `/api/v2/*` to `api-v2-service`
 * All other requests to `frontend-service`
@@ -270,6 +271,7 @@ spec:
 ----
 
 This configuration:
+
 * Accepts traffic for `myapp.example.com` on port 80 through the Gateway
 * Routes `/api/*` requests to `api-service`
 * Routes all other requests to `frontend-service`

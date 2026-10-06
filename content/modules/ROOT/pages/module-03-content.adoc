@@ -18,13 +18,14 @@ DestinationRules are versatile resources that define *how* traffic should be han
 
 === Load Balancing
 
-One of the most important features of DestinationRules is configuring load balancing algorithms. By default, Istio uses round-robin load balancing, but you can configure various algorithms to suit your needs.
+One of the most important features of DestinationRules is configuring load balancing algorithms. By default, Istio uses least-request load balancing, but you can configure various algorithms to suit your needs.
 
 ==== Load Balancing Algorithms
 
 Istio supports several load balancing algorithms:
 
-* *ROUND_ROBIN*: Distributes requests evenly across all endpoints (default)
+* *ROUND_ROBIN*: Distributes requests evenly across all endpoints
+* *LEAST_REQUEST*: Routes to the endpoint with the fewest outstanding requests (default)
 * *LEAST_CONN*: Routes to the endpoint with the fewest active connections
 * *RANDOM*: Randomly selects an endpoint
 * *PASSTHROUGH*: Passes requests directly to the original destination without load balancing
@@ -60,6 +61,7 @@ spec:
 ----
 
 This example shows:
+
 * Global load balancing policy at the DestinationRule level
 * Subset-specific load balancing policies that override the global policy
 
@@ -106,7 +108,7 @@ spec:
   host: my-service
   trafficPolicy:
     outlierDetection:
-      consecutiveErrors: 5
+      consecutive5xxErrors: 5
       interval: 30s
       baseEjectionTime: 30s
       maxEjectionPercent: 50
@@ -115,7 +117,7 @@ spec:
 
 Key parameters:
 
-* *consecutiveErrors*: Number of consecutive errors before ejecting an endpoint
+* *consecutive5xxErrors*: Number of consecutive 5xx errors before ejecting an endpoint
 * *interval*: Time window for error counting
 * *baseEjectionTime*: Minimum time an endpoint is ejected
 * *maxEjectionPercent*: Maximum percentage of endpoints that can be ejected
@@ -135,7 +137,7 @@ spec:
   host: my-service
   trafficPolicy:
     outlierDetection:
-      consecutiveErrors: 3
+      consecutive5xxErrors: 3
       interval: 30s
   subsets:
   - name: primary
@@ -146,7 +148,7 @@ spec:
       version: v2
     trafficPolicy:
       outlierDetection:
-        consecutiveErrors: 5
+        consecutive5xxErrors: 5
 ----
 
 When combined with a VirtualService, you can route traffic to the backup subset when the primary fails.
@@ -180,7 +182,7 @@ spec:
         http2MaxRequests: 100
         maxRequestsPerConnection: 2
     outlierDetection:
-      consecutiveErrors: 5
+      consecutive5xxErrors: 5
       interval: 30s
       baseEjectionTime: 30s
       maxEjectionPercent: 50
@@ -316,7 +318,7 @@ spec:
   rules:
   - from:
     - source:
-        requestPrincipals: ["auth.example.com/*"]
+        requestPrincipals: ["https://auth.example.com/*"]
     to:
     - operation:
         methods: ["GET", "POST"]
@@ -331,11 +333,12 @@ Key components:
 
 === Authorization Actions
 
-AuthorizationPolicy supports three actions:
+AuthorizationPolicy supports four actions:
 
 * *ALLOW*: Explicitly allows matching requests
 * *DENY*: Explicitly denies matching requests
 * *AUDIT*: Logs matching requests without allowing or denying (for monitoring)
+* *CUSTOM*: Delegates the access decision to an external authorization provider
 
 === Authorization Rules
 
@@ -352,7 +355,7 @@ rules:
   - source:
       principals: ["cluster.local/ns/default/sa/my-service"]
       namespaces: ["default"]
-      requestPrincipals: ["auth.example.com/user123"]
+      requestPrincipals: ["https://auth.example.com/user123"]
 ----
 
 * *principals*: Service account identities (from mTLS)
@@ -374,7 +377,7 @@ rules:
 ----
 
 * *methods*: HTTP methods (GET, POST, PUT, DELETE, etc.)
-* *paths*: URI paths (supports exact, prefix, suffix, regex)
+* *paths*: URI paths (supports exact, prefix, suffix, and presence matching)
 * *hosts*: Host headers
 
 ==== Custom Attribute Rules
@@ -391,7 +394,7 @@ rules:
     values: ["192.168.1.0/24"]
 ----
 
-### Deny Rules
+=== Deny Rules
 
 Create explicit deny rules to block specific requests:
 
@@ -507,13 +510,14 @@ spec:
   rules:
   - from:
     - source:
-        requestPrincipals: ["auth.example.com/*"]
+        requestPrincipals: ["https://auth.example.com/*"]
     to:
     - operation:
         methods: ["GET", "POST"]
 ----
 
 This configuration:
+
 * Requires valid JWTs from the specified issuer
 * Only allows GET and POST requests from authenticated users
 * Rejects all other requests

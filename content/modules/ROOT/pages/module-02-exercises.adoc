@@ -300,6 +300,7 @@ EOF
 ----
 
 This VirtualService:
+
 * Routes requests to `/api/*` to the backend service
 * Routes all other requests to the frontend service
 
@@ -377,7 +378,7 @@ spec:
       weight: 100
   - match:
     - uri:
-        regex: "^/static/.*\\.(jpg|png|gif)$"
+        regex: '^/static/.*\.(jpg|png|gif)$'
     route:
     - destination:
         host: frontend
@@ -390,6 +391,7 @@ EOF
 ----
 
 This example demonstrates:
+
 * Exact path matching (`/api/v1/users`)
 * Prefix matching (`/api/v2/*`)
 * Regex matching (static image files)

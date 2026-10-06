@@ -129,4 +129,4 @@ In this module, we quickly reviewed the following concepts:
 * The sidecar architecture pattern enables transparent network management without modifying applications
 * Istio's sidecar injection mechanism automatically adds Envoy proxies to your pods
 
-In the next module, you will learn how to install and configure Istio in your Kubernetes cluster.
+In the next module, you will learn how to manage traffic in your mesh using Gateways and VirtualServices.

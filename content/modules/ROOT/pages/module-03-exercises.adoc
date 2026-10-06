@@ -84,7 +84,7 @@ oc get pods -n $NAMESPACE -l app=loadtest
 
 === Step 3: Create DestinationRule with Round-Robin Load Balancing
 
-Create a DestinationRule with round-robin load balancing (default):
+Create a DestinationRule with round-robin load balancing:
 
 [source,bash]
 ----
@@ -275,7 +275,7 @@ spec:
   host: primary-service
   trafficPolicy:
     outlierDetection:
-      consecutiveErrors: 3
+      consecutive5xxErrors: 3
       interval: 30s
       baseEjectionTime: 30s
       maxEjectionPercent: 50
@@ -420,7 +420,7 @@ spec:
         http2MaxRequests: 2
         maxRequestsPerConnection: 1
     outlierDetection:
-      consecutiveErrors: 2
+      consecutive5xxErrors: 2
       interval: 30s
       baseEjectionTime: 30s
       maxEjectionPercent: 100

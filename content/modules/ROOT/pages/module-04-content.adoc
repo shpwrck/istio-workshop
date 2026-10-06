@@ -49,7 +49,8 @@ Some of the most important metrics Istio provides include:
 * *`istio_tcp_connections_closed_total`*: TCP connection statistics
 
 Each metric includes labels such as:
-* `source_service`: The service making the request
+
+* `source_workload`: The workload making the request
 * `destination_service`: The service receiving the request
 * `response_code`: HTTP response code
 * `request_protocol`: Protocol used (HTTP, gRPC, etc.)
@@ -74,6 +75,7 @@ Istio metrics can be integrated with remote APM (Application Performance Monitor
 * *Splunk*: Enterprise observability and security platform
 
 These solutions typically provide:
+
 * Advanced analytics and machine learning capabilities
 * Long-term metric storage and retention
 * Cross-platform correlation
@@ -89,6 +91,7 @@ Distributed tracing provides visibility into how requests flow through your micr
 Distributed tracing tracks requests as they traverse multiple services. Each request is assigned a unique trace ID, and each service interaction creates a span. Spans are connected to form a trace that shows the complete request journey.
 
 A trace consists of:
+
 * *Trace ID*: Unique identifier for the entire request
 * *Spans*: Individual operations within the trace
 * *Parent-Child Relationships*: How spans relate to each other
@@ -127,6 +130,7 @@ For local exploration, you can use:
 * *Zipkin*: Simple and fast distributed tracing system
 
 These tools allow you to:
+
 * Search traces by service, operation, or tag
 * View trace timelines and identify bottlenecks
 * Analyze error rates and latency patterns
@@ -156,6 +160,7 @@ Istio generates comprehensive logs through the Envoy sidecar proxies:
 * *Audit Logs*: Security and policy enforcement events
 
 Access logs are particularly valuable because they capture:
+
 * Request and response headers
 * Request and response body (configurable)
 * Response codes and status
@@ -171,6 +176,7 @@ Istio logs are generated in standard formats:
 * *OpenTelemetry Logs*: OTLP format for integration with observability platforms
 
 The structured nature of these logs makes them easy to:
+
 * Parse and analyze programmatically
 * Filter and search
 * Correlate with metrics and traces
@@ -186,6 +192,7 @@ For local exploration, you can:
 * *Use log aggregation tools*: Like Loki (Grafana's log aggregation system)
 
 These tools help you:
+
 * Search logs by service, time range, or content
 * Filter logs by severity or type
 * Correlate logs with specific requests or traces
@@ -269,6 +276,7 @@ Kiali is a web-based console for Istio service mesh observability. It provides:
 * *Configuration Validation*: Validate Istio configuration
 
 Kiali is particularly valuable because it:
+
 * Understands Istio-specific concepts
 * Provides context-aware visualizations
 * Integrates metrics, traces, and configuration
@@ -284,6 +292,7 @@ Tempo is Grafana's open-source distributed tracing backend. It provides:
 * *Simple Architecture*: Easy to deploy and operate
 
 Tempo is ideal for:
+
 * Organizations already using Grafana
 * Teams wanting open-source solutions
 * Environments requiring cost-effective trace storage

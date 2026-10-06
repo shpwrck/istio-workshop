@@ -103,6 +103,7 @@ curl http://localhost:15020/stats/prometheus
 ----
 
 You should see Prometheus-formatted metrics. Look for metrics like:
+
 * `istio_requests_total`
 * `istio_request_duration_milliseconds`
 * `istio_request_bytes`
@@ -222,6 +223,7 @@ oc logs -n $NAMESPACE $POD_NAME -c istio-proxy --tail=20
 ----
 
 The logs show detailed information about each request, including:
+
 * Request method and path
 * Response code
 * Request and response sizes
@@ -353,7 +355,7 @@ View the Envoy proxy configuration for a pod:
 [source,bash]
 ----
 POD_NAME=$(oc get pod -n $NAMESPACE -l app=metrics-test -o jsonpath='{.items[0].metadata.name}')
-istioctl proxy-config dump $POD_NAME -n $NAMESPACE | head -50
+istioctl proxy-config all $POD_NAME -n $NAMESPACE | head -50
 ----
 
 === Step 2: View Proxy Stats
@@ -362,7 +364,7 @@ View Envoy proxy statistics using istioctl:
 
 [source,bash]
 ----
-istioctl proxy-stats $POD_NAME -n $NAMESPACE
+istioctl experimental envoy-stats $POD_NAME -n $NAMESPACE
 ----
 
 This shows a summary of key statistics.
@@ -373,14 +375,14 @@ View specific statistics, such as request counts:
 
 [source,bash]
 ----
-istioctl proxy-stats $POD_NAME -n $NAMESPACE | grep -i request
+istioctl experimental envoy-stats $POD_NAME -n $NAMESPACE | grep -i request
 ----
 
 View connection statistics:
 
 [source,bash]
 ----
-istioctl proxy-stats $POD_NAME -n $NAMESPACE | grep -i connection
+istioctl experimental envoy-stats $POD_NAME -n $NAMESPACE | grep -i connection
 ----
 
 === Step 4: View Cluster Information
@@ -543,7 +545,7 @@ View statistics in JSON format:
 
 [source,bash]
 ----
-curl http://localhost:15000/stats?format=json | head -100
+curl "http://localhost:15000/stats?format=json" | head -100
 ----
 
 === Step 7: Stop Port-Forwarding
