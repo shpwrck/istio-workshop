@@ -32,20 +32,75 @@ Verify the namespace exists and has sidecar injection enabled:
 oc get namespace $NAMESPACE --show-labels | grep istio.io/rev
 ----
 
-=== Step 2: Verify Istio Ingress Gateway
+The exercises send test requests with `oc exec` from the `curl-client` Deployment that you created in Module 1 (Exercise 1, Step 7). Check that it is running:
+
+[source,bash]
+----
+oc get deployment curl-client -n $NAMESPACE
+----
+
+=== Step 2: Deploy an Istio Ingress Gateway
+
+OpenShift Service Mesh 3 does not install an ingress gateway together with the control plane. Deploy one into your namespace with gateway injection: the `inject.istio.io/templates: gateway` annotation makes the sidecar injector configure the `istio-proxy` container as a gateway, and `image: auto` is replaced with the proxy image of your control plane revision:
+
+[source,bash]
+----
+oc apply -f - <<EOF
+apiVersion: v1
+kind: Service
+metadata:
+  name: istio-ingressgateway
+  namespace: ${NAMESPACE}
+spec:
+  type: ClusterIP
+  selector:
+    istio: ingressgateway
+  ports:
+  - name: http2
+    port: 80
+    targetPort: 8080
+  - name: https
+    port: 443
+    targetPort: 8443
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: istio-ingressgateway
+  namespace: ${NAMESPACE}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      istio: ingressgateway
+  template:
+    metadata:
+      annotations:
+        inject.istio.io/templates: gateway
+      labels:
+        istio: ingressgateway
+        app: istio-ingressgateway
+        sidecar.istio.io/inject: "true"
+    spec:
+      containers:
+      - name: istio-proxy
+        image: auto
+EOF
+----
 
 Check that the Istio ingress gateway is running:
 
 [source,bash]
 ----
-oc get pods -n istio-system -l app=istio-ingressgateway
+oc rollout status deployment/istio-ingressgateway -n $NAMESPACE
+oc get pods -n $NAMESPACE -l app=istio-ingressgateway
 ----
 
 Note the service name and external access method:
 
 [source,bash]
 ----
-oc get svc -n istio-system istio-ingressgateway
+oc get svc -n $NAMESPACE istio-ingressgateway
 ----
 
 === Step 3: Create a Basic Gateway
@@ -79,14 +134,16 @@ Verify the Gateway was created successfully:
 
 [source,bash]
 ----
-oc get gateway -n $NAMESPACE
+oc get gateways.networking.istio.io -n $NAMESPACE
 ----
+
+NOTE: Use the full resource name `gateways.networking.istio.io`. On clusters that also have the Kubernetes Gateway API installed, `oc get gateway` lists `gateways.gateway.networking.k8s.io` instead and does not show the Istio Gateway.
 
 View the Gateway configuration:
 
 [source,bash]
 ----
-oc get gateway my-gateway -n $NAMESPACE -o yaml
+oc get gateways.networking.istio.io my-gateway -n $NAMESPACE -o yaml
 ----
 
 === Step 5: Create a Gateway with HTTPS
@@ -149,9 +206,9 @@ spec:
     spec:
       containers:
       - name: nginx
-        image: nginx:latest
+        image: quay.io/nginx/nginx-unprivileged:latest
         ports:
-        - containerPort: 80
+        - containerPort: 8080
 ---
 apiVersion: v1
 kind: Service
@@ -163,7 +220,7 @@ spec:
     app: frontend
   ports:
   - port: 80
-    targetPort: 80
+    targetPort: 8080
     name: http
 ---
 apiVersion: apps/v1
@@ -185,9 +242,9 @@ spec:
     spec:
       containers:
       - name: nginx
-        image: nginx:latest
+        image: quay.io/nginx/nginx-unprivileged:latest
         ports:
-        - containerPort: 80
+        - containerPort: 8080
 ---
 apiVersion: v1
 kind: Service
@@ -199,7 +256,7 @@ spec:
     app: backend
   ports:
   - port: 80
-    targetPort: 80
+    targetPort: 8080
     name: http
 EOF
 ----
@@ -257,7 +314,7 @@ Test that the VirtualService routes traffic correctly by sending a request from 
 
 [source,bash]
 ----
-oc run curl-test --image=curlimages/curl:latest --rm -i --restart=Never -n $NAMESPACE -- curl -v http://frontend
+oc exec -n $NAMESPACE deploy/curl-client -c curl -- curl -v http://frontend
 ----
 
 == Exercise 3: Implement Path-Based Routing
@@ -319,7 +376,7 @@ Get the ingress gateway external address:
 
 [source,bash]
 ----
-INGRESS_HOST=$(oc get svc -n istio-system istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+INGRESS_HOST=$(oc get svc -n $NAMESPACE istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
 echo $INGRESS_HOST
 ----
 
@@ -327,7 +384,7 @@ If no external address is available, you can use port-forwarding:
 
 [source,bash]
 ----
-oc port-forward -n istio-system svc/istio-ingressgateway 8080:80 &
+oc port-forward -n $NAMESPACE svc/istio-ingressgateway 8080:80 &
 ----
 
 Test the frontend route:
@@ -427,9 +484,9 @@ spec:
     spec:
       containers:
       - name: nginx
-        image: nginx:latest
+        image: quay.io/nginx/nginx-unprivileged:latest
         ports:
-        - containerPort: 80
+        - containerPort: 8080
 EOF
 ----
 
@@ -474,7 +531,7 @@ oc get destinationrule frontend -n $NAMESPACE -o yaml
 
 === Step 3: Create VirtualService with Weighted Splitting
 
-Create a VirtualService that splits traffic 90% to v1 and 10% to v2:
+Update the `frontend` VirtualService from Exercise 2 so that it splits traffic 90% to v1 and 10% to v2:
 
 [source,bash]
 ----
@@ -482,7 +539,7 @@ oc apply -f - <<EOF
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
-  name: frontend-canary
+  name: frontend
   namespace: ${NAMESPACE}
 spec:
   hosts:
@@ -500,14 +557,16 @@ spec:
 EOF
 ----
 
+NOTE: Define the routes for a host in a single VirtualService. If a second VirtualService (for example `frontend-canary`) also defines the host `frontend` for sidecars, Istio applies only one of them, and `istioctl analyze` reports `IST0109`.
+
 === Step 4: Test Weighted Traffic Splitting
 
-Send multiple requests and observe the traffic distribution. You can check the Envoy access logs to see which version receives each request:
+Send multiple requests and observe the traffic distribution. You can check the Envoy access logs (enabled in Module 1, Exercise 2, Step 6) to see which version receives each request:
 
 [source,bash]
 ----
 for i in {1..20}; do
-  oc run curl-test-$i --image=curlimages/curl:latest --rm -i --restart=Never -n $NAMESPACE -- curl -s http://frontend > /dev/null
+  oc exec -n $NAMESPACE deploy/curl-client -c curl -- curl -s http://frontend > /dev/null
 done
 ----
 
@@ -529,7 +588,7 @@ oc apply -f - <<EOF
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
-  name: frontend-canary
+  name: frontend
   namespace: ${NAMESPACE}
 spec:
   hosts:
@@ -557,7 +616,7 @@ oc apply -f - <<EOF
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
-  name: frontend-canary
+  name: frontend
   namespace: ${NAMESPACE}
 spec:
   hosts:
@@ -581,7 +640,7 @@ Ensure you have a Gateway that accepts traffic for your application:
 
 [source,bash]
 ----
-oc get gateway my-gateway -n $NAMESPACE
+oc get gateways.networking.istio.io my-gateway -n $NAMESPACE
 ----
 
 If it doesn't exist, create it:
@@ -649,14 +708,14 @@ Check both resources:
 
 [source,bash]
 ----
-oc get gateway,virtualservice -n $NAMESPACE
+oc get gateways.networking.istio.io,virtualservice -n $NAMESPACE
 ----
 
 View the complete configuration:
 
 [source,bash]
 ----
-oc get gateway my-gateway -n $NAMESPACE -o yaml
+oc get gateways.networking.istio.io my-gateway -n $NAMESPACE -o yaml
 oc get virtualservice myapp-external -n $NAMESPACE -o yaml
 ----
 
@@ -666,15 +725,15 @@ Get the ingress gateway address:
 
 [source,bash]
 ----
-INGRESS_HOST=$(oc get svc -n istio-system istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
-INGRESS_PORT=$(oc get svc -n istio-system istio-ingressgateway -o jsonpath='{.spec.ports[?(@.name=="http2")].port}')
+INGRESS_HOST=$(oc get svc -n $NAMESPACE istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+INGRESS_PORT=$(oc get svc -n $NAMESPACE istio-ingressgateway -o jsonpath='{.spec.ports[?(@.name=="http2")].port}')
 ----
 
 If using port-forwarding:
 
 [source,bash]
 ----
-oc port-forward -n istio-system svc/istio-ingressgateway 8080:80 &
+oc port-forward -n $NAMESPACE svc/istio-ingressgateway 8080:80 &
 ----
 
 Test the frontend:
