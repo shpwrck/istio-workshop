@@ -644,6 +644,8 @@ Try accessing without a token (should be denied):
 oc exec -n $NAMESPACE deploy/curl-client -c curl -- curl -v http://auth-service
 ----
 
+NOTE: The sidecar of `curl-client` reuses its connections to `auth-service`, and a request on a connection that was opened before a policy change can still be evaluated with the previous policy. If the first request after a change (up to one per `auth-service` pod) does not show the expected result, run the command again. This applies to every policy change in this module.
+
 Try with a valid token (should be allowed):
 
 [source,bash]
