@@ -26,7 +26,7 @@ Istio supports several load balancing algorithms:
 
 * *ROUND_ROBIN*: Distributes requests evenly across all endpoints
 * *LEAST_REQUEST*: Routes to the endpoint with the fewest outstanding requests (default)
-* *LEAST_CONN*: Routes to the endpoint with the fewest active connections
+* *LEAST_CONN*: Deprecated alias of `LEAST_REQUEST`
 * *RANDOM*: Randomly selects an endpoint
 * *PASSTHROUGH*: Passes requests directly to the original destination without load balancing
 
@@ -458,7 +458,7 @@ spec:
         paths: ["/admin/*"]
 ----
 
-Policies are evaluated in order, and DENY policies take precedence over ALLOW policies.
+Istio evaluates CUSTOM policies first, then DENY policies, then ALLOW policies. A request that matches any DENY policy is rejected. If at least one ALLOW policy applies to the workload, the request must match one of them: ALLOW policies are combined with OR, so adding an ALLOW policy can only allow more requests.
 
 === Authorization Best Practices
 
